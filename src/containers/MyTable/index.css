@@ -1,0 +1,8 @@
+.MuiTableSortLabel-root .MuiTableCell-paddingNone .MuiTableCell-body{
+    font-size: 16px;
+}
+
+.myButton{
+    margin: 16px auto;
+    background: #b9e39a;
+}
