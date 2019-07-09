@@ -2,7 +2,7 @@ import React, {Component} from "react";
 import "./index.css";
 import axios from 'axios'
 import {urlPort} from "../../index";
-import { FormGroup, FormControl, ControlLabel } from "react-bootstrap";
+import {FormGroup, FormControl, ControlLabel} from "react-bootstrap";
 import LoaderButton from "../../components/LoaderButton";
 
 export default class Login extends Component {
@@ -28,7 +28,7 @@ export default class Login extends Component {
 
     handleSubmit = async event => {
         event.preventDefault();
-        this.setState({ isLoading: true });
+        this.setState({isLoading: true});
         var params = new URLSearchParams();
         params.append('username', this.state.username);
         params.append('password', this.state.password);
@@ -38,23 +38,36 @@ export default class Login extends Component {
                     this.props.userHasAuthenticated(true);
                     this.authSuccess();
                     let history = this.props.history;
-                    history.push('/edit');
+                    history.push('/table');
                 }
             ).catch(
             err => {
-                this.authFail();
-                this.setState({ isLoading: false });
+                if (err.response.status === 401) {
+                    this.authFail();
+                    this.setState({isLoading: false});
+                } else {
+                    this.submitFail();
+                    this.setState({isLoading: false});
+                }
             }
         );
     }
 
     authFail() {
         var block = document.getElementById("error");
+        block.innerText = "Неверные имя пользователя или пароль";
         block.style.visibility = "visible";
     }
+
     authSuccess() {
         var block = document.getElementById("error");
         block.style.visibility = "hidden";
+    }
+
+    submitFail() {
+        var block = document.getElementById("error");
+        block.innerText = "Ошибка соединения с сервером";
+        block.style.visibility = "visible";
     }
 
     render() {

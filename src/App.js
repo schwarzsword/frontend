@@ -12,6 +12,7 @@ class App extends Component {
 
         this.state = {
             isAuthenticated: false,
+            editing:null
         };
     }
 
@@ -26,13 +27,18 @@ class App extends Component {
         this.props.history.push("/login");
     }
 
+    setEditing = doc => {
+        this.setState({editing: doc});
+    }
 
 
     render() {
 
         const childProps = {
             isAuthenticated: this.state.isAuthenticated,
-            userHasAuthenticated: this.userHasAuthenticated
+            userHasAuthenticated: this.userHasAuthenticated,
+            editing: this.state.editing,
+            setEditing: this.setEditing
         };
         return (
             <div className="App ">

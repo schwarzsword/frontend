@@ -27,8 +27,16 @@ export default class AddForm extends Component {
             status: "",
             value: "",
             courts: [],
-            is_executed: false
+            is_executed: false,
         };
+    }
+
+    toDate = timestamp => {
+        let dt = new Date(timestamp);
+        let mm = dt.getMonth() + 1;
+        let dd = dt.getDate();
+
+        return [dt.getFullYear(), (mm > 9 ? '' : '0') + mm, (dd > 9 ? '' : '0') + dd].join('-');
     }
 
     renderSuggestion = suggestion => (
@@ -69,6 +77,21 @@ export default class AddForm extends Component {
     }
 
     componentDidMount() {
+        if (this.props.editing !== null) {
+            this.setState({id: this.props.editing.id});
+            this.setState({receiving_date:  this.toDate(this.props.editing.receivingDate)});
+            this.setState({info: this.props.editing.info === null ? "" : this.props.editing.info});
+            this.setState({judge: this.props.editing.judgeName === null ? "" : this.props.editing.judgeName});
+            this.setState({case_number: this.props.editing.caseNumber === null ? "" : this.props.editing.caseNumber});
+            this.setState({plaintiff: this.props.editing.plaintiff === null ? "" : this.props.editing.plaintiff});
+            this.setState({defendant: this.props.editing.defendant === null ? "" : this.props.editing.defendant});
+            this.setState({execution_date:  this.toDate(this.props.editing.executionDate)});
+            this.setState({closing_number: this.props.editing.closingNumber === null ? "" : this.props.editing.closingNumber});
+            this.setState({closing_date: this.props.editing.closingDate === null ? "" : this.toDate(this.props.editing.closingDate)});
+            this.setState({sending_date: this.props.editing.sendingDate === null ? "" : this.toDate(this.props.editing.sendingDate)});
+            this.setState({status: this.props.editing.status === null ? "" : this.props.editing.status});
+            this.setState({value: this.props.editing.courtByCourtName === null ? "" : this.props.editing.courtByCourtName.name});
+        }
         axios.get(urlPort('/courts'), {withCredentials: true})
             .then(
                 res => {
@@ -101,6 +124,20 @@ export default class AddForm extends Component {
         block.style.visibility = "visible";
     }
 
+    notFound() {
+        var block = document.getElementById("message");
+        block.innerText = "Документ отсутствует";
+        block.style.color = "crimson";
+        block.style.visibility = "visible";
+    }
+
+    deleted() {
+        var block = document.getElementById("message");
+        block.innerText = "Удаление прошло успешно";
+        block.style.color = "darkgreen";
+        block.style.visibility = "visible";
+    }
+
     handleSubmit = async event => {
         event.preventDefault();
         this.setState({isLoading: true});
@@ -130,12 +167,41 @@ export default class AddForm extends Component {
                     let history = this.props.history;
                     history.push('/login');
                 } else {
-                    this.submitFail();
-                    this.setState({isLoading: false});
+                    if (err.response.status === 405) {
+                        this.notFound();
+                        this.setState({isLoading: false});
+                    } else {
+                        this.submitFail();
+                        this.setState({isLoading: false});
+                    }
                 }
             }
         );
     }
+
+
+    delete = event => {
+        axios.get(urlPort('/delete?id=' + this.state.id), {withCredentials: true})
+            .then(
+                res => {
+                    this.deleted();
+                }
+            ).catch(
+            err => {
+                if (err.response.status === 401) {
+                    let history = this.props.history;
+                    history.push('/login');
+                } else {
+                    if (err.response.status === 400) {
+                        this.notFound();
+                    } else {
+                        this.submitFail();
+                    }
+                }
+            }
+        );
+    }
+
 
     back = event => {
         event.preventDefault();
@@ -148,14 +214,21 @@ export default class AddForm extends Component {
         const {value, suggestions} = this.state;
         const inputProps = {
             value,
-            onChange: this.onChange
+            onChange: this.onChange,
+            className: "form-control"
         };
         return (
             <div className="AddForm">
-
                 <Form onSubmit={this.handleSubmit}>
                     <div className="row">
+
                         <div className="column left">
+                            <FormControl
+                                type="text"
+                                value={this.state.id}
+                                onChange={this.handleChange}
+                                className="id"
+                            />
                             <FormGroup controlId="info" bsSize="large">
                                 <ControlLabel>Получено</ControlLabel>
                                 <FormControl
@@ -170,6 +243,7 @@ export default class AddForm extends Component {
                                     type="date"
                                     value={this.state.receiving_date}
                                     onChange={this.handleChange}
+                                    required
                                 />
                             </FormGroup>
                             <FormGroup controlId="execution_date" bsSize="large">
@@ -178,6 +252,7 @@ export default class AddForm extends Component {
                                     type="date"
                                     value={this.state.execution_date}
                                     onChange={this.handleChange}
+                                    required
                                 />
                             </FormGroup>
                             <FormGroup controlId="value" bsSize="large">
@@ -207,6 +282,7 @@ export default class AddForm extends Component {
                                     onChange={this.handleChange}
                                 />
                             </FormGroup>
+
                         </div>
                         <div className="column right">
                             <FormGroup controlId="case_number" bsSize="large">
@@ -260,9 +336,9 @@ export default class AddForm extends Component {
                                     onChange={this.handleChange}
                                 />
                             </FormGroup>
+
                         </div>
                     </div>
-
                     <LoaderButton
                         block
                         bsSize="large"
@@ -271,8 +347,11 @@ export default class AddForm extends Component {
                         text="Сохранить"
                         loadingText="Сохранение изменений"
                     />
-                    <div id="message">Сохранение прошло успешно</div>
                 </Form>
+                <Button className="LoaderButton  btn btn-lg btn-default btn-block"
+                        onClick={this.delete}>Удалить</Button>
+                <div id="message"></div>
+                <br/>
                 <Button onClick={this.back}>К списку дел</Button>
             </div>
         );

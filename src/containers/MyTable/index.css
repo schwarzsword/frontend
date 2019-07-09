@@ -6,3 +6,31 @@
     margin: 16px auto;
     background: #b9e39a;
 }
+
+
+.green{
+    background-color: #d4fa9b;
+}
+
+.red{
+    background-color: #fcbf44;
+}
+
+.dated{
+    background-color: #fc4444;
+}
+
+.droplist{
+    text-align: center;
+    font-size: 16px;
+    width: 250px;
+}
+
+.droplist:hover{
+    background-color: blue;
+    color: white;
+}
+
+#dropdown-basic-button{
+    width: 250px;
+}
